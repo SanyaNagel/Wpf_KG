@@ -17,10 +17,13 @@ namespace Wpf_KG
     {
         public MainWindow mw;
         public List<Edge> listEdge = new List<Edge>();
-        Point3D internalPoint = new Point3D();
+        public Point3D internalPoint = new Point3D();
 
 
-        public double moving = 100.0;
+        public double movingX = 0.0;
+        public double movingY = 0.0;
+        public double movingZ = 0.0;
+        
         public double scale = 4.0;
 
         public void setScale(double scal)
@@ -34,21 +37,26 @@ namespace Wpf_KG
                 {1, 0, 0, 0},
                 {0, 1, 0, 0},
                 {0, 0, 1, 0},
-                {moving, moving, moving, 1 }}); 
+                {movingX, movingY, movingZ, 1}}); 
         }
 
         //Матрица масштабирования
         public Matrix<double> scale_matr()
         {
             return Matrix<double>.Build.DenseOfArray(new double[,] {
-                {scale, 0, 0, 0},
-                {0, scale, 0, 0},
-                {0, 0, scale, 0},
-                {0, 0, 0, scale }
+                {scale + 1, 0, 0, 0},
+                {0, scale + 1, 0, 0},
+                {0, 0, scale + 1, 0},
+                {0, 0, 0, scale + 1 }
             });
         }
 
-        public double rotation = 3.14;
+        public double rotation = 2.0;
+
+        public void setRotation(double r)
+        {
+            rotation = r;
+        }
         public Matrix<double> rotation_matrix_X()
         {
             return Matrix<double>.Build.DenseOfArray(new double[,] {
@@ -79,15 +87,19 @@ namespace Wpf_KG
             });
         }
 
-        public void Command(String name, bool auto = false)
+        public void Command(String name)
         {
             switch (name)
             {
                 case "Перемещение": Transformation(moving_matr()); break;
 
-                case "Вращение": break;
+                case "Вращение по X": Transformation(rotation_matrix_X()); break;
 
-                case "Масштабирование": Transformation(scale_matr(), auto); break;
+                case "Вращение по Y": Transformation(rotation_matrix_Y()); break;
+
+                case "Вращение по Z": Transformation(rotation_matrix_Z()); break;
+
+                case "Масштабирование": Transformation(scale_matr()); break;
 
                 default: break;
             }
@@ -103,54 +115,25 @@ namespace Wpf_KG
             }
         }
 
-        public List<Edge> cloneList(List<Edge> listClone)
-        {
-            List<Edge> newList = new List<Edge>();
-            foreach(Edge edg in listClone)
-            {
-                newList.Add(new Edge(edg.P1, edg.P2, edg.Color));
-            }
-            return newList;
-        }
-
-        public void Transformation(Matrix<double> M, bool clone = false)
+        
+        public void Transformation(Matrix<double> M)
         {
             mw.RedrawScene();
-            if (clone == true)
+            for (int i = 0; i < listEdge.Count; i++)
             {
-                List<Edge> listClone = cloneList(listEdge);
-                for (int i = 0; i < listClone.Count; i++)
-                {
-                    Vector<double> p1Coords = Vector<double>.Build.DenseOfArray(new double[] { listClone[i].P1.X, listClone[i].P1.Y, listClone[i].P1.Z, 1 });
-                    Vector<double> p2Coords = Vector<double>.Build.DenseOfArray(new double[] { listClone[i].P2.X, listClone[i].P2.Y, listClone[i].P2.Z, 1 });
-                    p1Coords = p1Coords * M;
-                    p2Coords = p2Coords * M;
-                    listClone[i].changeCoords(p1Coords[0], p1Coords[1], p1Coords[2], p2Coords[0], p2Coords[1], p2Coords[2]);
-                }
-                Vector<double> oCoords = Vector<double>.Build.DenseOfArray(new double[] { internalPoint.X, internalPoint.Y, internalPoint.Z, 1 });
-                oCoords = oCoords * M;
-                internalPoint.X = oCoords[0];
-                internalPoint.Y = oCoords[1];
-                internalPoint.Z = oCoords[2];
-                DrawAllEdge(listClone);
+                Vector<double> p1Coords = Vector<double>.Build.DenseOfArray(new double[] { listEdge[i].P1.X, listEdge[i].P1.Y, listEdge[i].P1.Z, 1 });
+                Vector<double> p2Coords = Vector<double>.Build.DenseOfArray(new double[] { listEdge[i].P2.X, listEdge[i].P2.Y, listEdge[i].P2.Z, 1 });
+                p1Coords = p1Coords * M;
+                p2Coords = p2Coords * M;
+                listEdge[i].changeCoords(p1Coords[0], p1Coords[1], p1Coords[2], p2Coords[0], p2Coords[1], p2Coords[2]);
             }
-            else
-            {
-                for (int i = 0; i < listEdge.Count; i++)
-                {
-                    Vector<double> p1Coords = Vector<double>.Build.DenseOfArray(new double[] { listEdge[i].P1.X, listEdge[i].P1.Y, listEdge[i].P1.Z, 1 });
-                    Vector<double> p2Coords = Vector<double>.Build.DenseOfArray(new double[] { listEdge[i].P2.X, listEdge[i].P2.Y, listEdge[i].P2.Z, 1 });
-                    p1Coords = p1Coords * M;
-                    p2Coords = p2Coords * M;
-                    listEdge[i].changeCoords(p1Coords[0], p1Coords[1], p1Coords[2], p2Coords[0], p2Coords[1], p2Coords[2]);
-                }
-                Vector<double> oCoords = Vector<double>.Build.DenseOfArray(new double[] { internalPoint.X, internalPoint.Y, internalPoint.Z, 1 });
-                oCoords = oCoords * M;
-                internalPoint.X = oCoords[0];
-                internalPoint.Y = oCoords[1];
-                internalPoint.Z = oCoords[2];
-                DrawAllEdge(listEdge);
-            }
+            Vector<double> oCoords = Vector<double>.Build.DenseOfArray(new double[] { internalPoint.X, internalPoint.Y, internalPoint.Z, 1 });
+            oCoords = oCoords * M;
+            internalPoint.X = oCoords[0];
+            internalPoint.Y = oCoords[1];
+            internalPoint.Z = oCoords[2];
+            DrawAllEdge(listEdge);
+            
         }
 
 
