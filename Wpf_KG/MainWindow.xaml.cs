@@ -32,6 +32,7 @@ namespace Wpf_KG
             proc.mw = this;
             sliderX.Maximum = 2 * Math.PI;
             sliderY.Maximum = 2 * Math.PI;
+            sliderZ.Maximum = 2 * Math.PI;
 
             proc.DisplayLine("Red", 0, 0, 0, 200, 1);
             proc.DisplayLine("Red", 0, 0, 200, 0, 1);
@@ -67,20 +68,35 @@ namespace Wpf_KG
                 }
             });
         }
+
+        private bool botFlag = false;
+        System.Timers.Timer t1;
+
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            System.Timers.Timer t1 = new System.Timers.Timer();
-
-            t1.Interval = 50;
-            t1.Elapsed += (s, a) =>
+            if (botFlag == false)
             {
-                functionAnimation();
+                proc.movingX = 0;
+                proc.movingY = 0;
+                proc.movingZ = 0;
+                t1 = new System.Timers.Timer();
+                t1.Interval = 50;
+                t1.Elapsed += (s, a) =>
+                {
+                    functionAnimation();
 
-            };
+                };
 
-            t1.Start();
-            proc.movingX = 0;
-
+                t1.Start();
+                proc.movingX = 0;
+                botFlag = true;
+            }
+            else
+            {
+                t1.Stop();
+                t1.Dispose();
+                botFlag = false;
+            }
         }
 
 
@@ -132,6 +148,8 @@ namespace Wpf_KG
             }*/
         }
 
+
+        //Загрузка и выбор объекта
         bool init = false;
         private void listObject_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -164,12 +182,20 @@ namespace Wpf_KG
             prevValueScal = sliderScal.Value;
         }
 
+        //Выбор действия над объектом
         private void listAction_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (init == true)
             {
                 RedrawScene();
-                proc.Command((listAction.SelectedItem as TextBlock).Text);
+                string commandCurrent = (listAction.SelectedItem as TextBlock).Text;
+                if(commandCurrent == "Перемещение")
+                {
+                    proc.movingX = 100;
+                    proc.movingY = 100;
+                    proc.movingZ = 0;
+                }
+                proc.Command(commandCurrent);
             }
             else
             {

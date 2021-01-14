@@ -87,6 +87,16 @@ namespace Wpf_KG
             });
         }
 
+        public Matrix<double> projection()
+        {
+            return Matrix<double>.Build.DenseOfArray(new double[,] {
+            {1, 0, 0, 0 },
+            {0, 1, 0, 0 },
+            {Math.Cos(Math.PI/4), Math.Cos(Math.PI/4), 0, 0},
+            {0, 0, 0, 1 }
+            });
+        }
+
         public void Command(String name)
         {
             switch (name)
@@ -109,12 +119,25 @@ namespace Wpf_KG
         {
             if (list == null)
                 return;
-            foreach( Edge edg in list)
+            //List<Edge> lClone = listClone(list);
+            //Transformation(projection());
+            foreach ( Edge edg in list)
             {
                 mw.CanvasArea.Children.Add(edg.line);
             }
         }
 
+        /*
+        public List<Edge> listClone(List<Edge> list)
+        {
+            List<Edge> listClone = new List<Edge>();
+            foreach(Edge edg in list)
+            {
+                listClone.Add(new Edge(edg.P1,edg.P2,edg.Color));
+            }
+            return listClone;
+        }
+        */
         
         public void Transformation(Matrix<double> M)
         {

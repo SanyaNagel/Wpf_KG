@@ -25,7 +25,9 @@ namespace Wpf_KG
                 case "Куб": return DrawObject(File.ReadAllLines("cube.obj"));
                     
                 case "Призма": return DrawObject(File.ReadAllLines("prism.obj"));
-                
+
+                case "Н": return DrawObject(File.ReadAllLines("N.obj"));
+
                 default: return null;
             }
         }
