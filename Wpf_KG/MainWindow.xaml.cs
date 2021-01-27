@@ -158,8 +158,16 @@ namespace Wpf_KG
                 sliderScal.Value = 1;
                 listAction.SelectedIndex = 0;
                 RedrawScene();
-                proc.listEdge = pars.WriteObject((listObject.SelectedItem as TextBlock).Text);
-                proc.DrawAllEdge(proc.listEdge);
+                //proc.listEdge = pars.WriteObject((listObject.SelectedItem as TextBlock).Text);
+                //proc.DrawAllEdge(proc.listEdge);
+                proc.listListEdge = pars.WriteObjectEdges((listObject.SelectedItem as TextBlock).Text);
+                foreach(List<Edge> list in proc.listListEdge)
+                {
+                    foreach(Edge edg in list)
+                        proc.listEdge.Add(edg);
+                }
+                proc.DrawAllListEdge(proc.listListEdge);
+                //proc.DrawAllEdge(proc.listEdge);
             }
         }
 

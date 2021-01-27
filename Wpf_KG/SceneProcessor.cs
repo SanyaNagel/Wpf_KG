@@ -17,7 +17,8 @@ namespace Wpf_KG
     {
         public MainWindow mw;
         public List<Edge> listEdge = new List<Edge>();
-        public Point3D internalPoint = new Point3D();
+        public List<List<Edge>> listListEdge = new List<List<Edge>>();
+        public Point3D internalPoint = new Point3D(0,0,0);
 
 
         public double movingX = 0.0;
@@ -53,10 +54,49 @@ namespace Wpf_KG
 
         public double rotation = 2.0;
 
+        //Проверяем можно ли отрисовывать грань, состоящую из списка рёбер
+        public bool isDraw(List<Edge> list)
+        {
+            //Ищем произведение двух векторов
+            Edge e1 = list.First();
+            Edge e2 = list.Last();
+            Vector<double> v1 = Vector<double>.Build.DenseOfArray(new double[] { e1.P2.X - e1.P1.X, e1.P2.Y - e1.P1.Y, e1.P2.Z - e1.P1.Z});
+            Vector<double> v2 = Vector<double>.Build.DenseOfArray(new double[] { e2.P2.X - e2.P1.X, e2.P2.Y - e2.P1.Y, e2.P2.Z - e2.P1.Z });
+            
+            //Выполняем векторное произведение
+            Vector<double> vectorNormal = Vector<double>.Build.DenseOfArray(new double[] { v1[1] * v2[2] - v1[2]*v2[1], v1[2] * v2[0] - v1[0]*v2[2], v1[0]*v2[1]-v1[1]*v2[0]});
+
+            //Теперь нужно определить вектор наружний или внутренний
+            //Откладываем вектор от внутренней точки
+            Vector<double> vP = Vector<double>.Build.DenseOfArray(new double[] { e1.P2.X - internalPoint.X, e1.P2.Y - internalPoint.Y, e1.P2.Z - internalPoint.Z });
+
+            //Выполняем сколярное произведение точки на полученный вектор
+            double v1vP = vectorNormal * vP;
+            if(v1vP < 0)    //Если вектор направлен внуторь
+            {               //То делаем обратно направление вектора
+                vectorNormal *= -1;
+            }
+
+            //Находим угол между проекцией наблюдения и вектором нормали
+            double vNormalVProection = vectorNormal * vProection;
+            if (vNormalVProection < 0)//Если угол отрицател
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+        }
+
+        public Vector<double> vProection = Vector<double>.Build.DenseOfArray(new double[] { 0,0,100});
+
         public void setRotation(double r)
         {
             rotation = r;
         }
+
         public Matrix<double> rotation_matrix_X()
         {
             return Matrix<double>.Build.DenseOfArray(new double[,] {
@@ -115,13 +155,25 @@ namespace Wpf_KG
             }
         }
 
+        public void DrawAllListEdge(List<List<Edge>> listList)
+        {
+            if (listList == null)
+                return;
+
+            foreach (List<Edge> listEdg in listList)   //Цикл по всем граням
+            {
+                if (isDraw(listEdg) == true)   //Если грань видимая то отрисовываем
+                    DrawAllEdge(listEdg);
+            }
+        }
+
         public void DrawAllEdge(List<Edge> list)
         {
             if (list == null)
                 return;
             //List<Edge> lClone = listClone(list);
             //Transformation(projection());
-            foreach ( Edge edg in list)
+            foreach (Edge edg in list)
             {
                 mw.CanvasArea.Children.Add(edg.line);
             }
@@ -155,8 +207,8 @@ namespace Wpf_KG
             internalPoint.X = oCoords[0];
             internalPoint.Y = oCoords[1];
             internalPoint.Z = oCoords[2];
-            DrawAllEdge(listEdge);
-            
+            //DrawAllEdge(listEdge);
+            DrawAllListEdge(listListEdge);
         }
 
 
